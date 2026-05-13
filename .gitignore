@@ -27,3 +27,9 @@ backend/email/cmd/preview/output/
 
 # Xcode user-specific data
 xcuserdata/
+
+# gradle / android build
+**/.gradle/
+android/**/build/
+android/**/.cxx/
+android/**/.externalNativeBuild/

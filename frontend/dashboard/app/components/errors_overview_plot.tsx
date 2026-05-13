@@ -24,8 +24,12 @@ const ErrorsOverviewPlot: React.FC = () => {
   const timeConfig = getPlotTimeGroupNivoConfig(plotTimeGroup);
 
   return (
-    <div className="flex font-body items-center justify-center w-full h-[36rem]">
-      {status === "pending" && <SkeletonPlot />}
+    <div data-testid="exceptions-plot" className="flex font-body items-center justify-center w-full h-[36rem]">
+      {status === "pending" && (
+        <div data-testid="exceptions-plot-skeleton" className="w-full h-full">
+          <SkeletonPlot />
+        </div>
+      )}
       {status === "error" && (
         <p className="text-lg font-display text-center p-4">
           Error fetching plot, please change filters or refresh page to try
@@ -33,9 +37,10 @@ const ErrorsOverviewPlot: React.FC = () => {
         </p>
       )}
       {status === "success" && plot === null && (
-        <p className="text-lg font-display text-center p-4">No Data</p>
+        <p data-testid="exceptions-plot-no-data" className="text-lg font-display text-center p-4">No Data</p>
       )}
       {status === "success" && plot !== null && plot !== undefined && (
+        <div data-testid="exceptions-plot-data" className="w-full h-full">
         <ResponsiveLine
           data={plot}
           curve="monotoneX"
@@ -123,6 +128,7 @@ const ErrorsOverviewPlot: React.FC = () => {
             );
           }}
         />
+        </div>
       )}
     </div>
   );

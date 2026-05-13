@@ -64,8 +64,7 @@ const launchBugReport = () => {
 const trackBugReport = async () => {
   try {
     const screenshot = await Measure.captureScreenshot();
-    const layoutSnapshot = await Measure.captureLayoutSnapshot();
-    const attachments = [screenshot, layoutSnapshot].filter(a => a !== null);
+    const attachments = [screenshot].filter(a => a !== null);
     await Measure.trackBugReport({
       description: 'Bug report from React Native demos',
       attachments,

@@ -187,6 +187,7 @@ export const ErrorsOverview: React.FC<ErrorsOverviewProps> = ({ teamId }) => {
                   return (
                     <TableRow
                       key={`${idx}-${id}`}
+                      data-testid="exception-row"
                       className="font-body"
                       tabIndex={0}
                       onKeyDown={(e) => {
@@ -214,7 +215,7 @@ export const ErrorsOverview: React.FC<ErrorsOverviewProps> = ({ teamId }) => {
                               "()"}
                           </p>
                           <div className="py-1" />
-                          <p className="text-xs truncate text-muted-foreground select-none">
+                          <p data-testid="exception-row-type" className="text-xs truncate text-muted-foreground select-none">
                             {`${type}${message ? `:${message}` : ""}`}
                           </p>
                           <div className="flex flex-wrap gap-1.5 pt-2">
@@ -244,7 +245,7 @@ export const ErrorsOverview: React.FC<ErrorsOverviewProps> = ({ teamId }) => {
                           aria-hidden="true"
                           style={{ display: "block" }}
                         />
-                        <div className="pointer-events-none p-4">{count}</div>
+                        <div data-testid="exception-row-instances" className="pointer-events-none p-4">{count}</div>
                       </TableCell>
                       <TableCell className="w-[20%] text-center truncate select-none relative p-0">
                         <Link

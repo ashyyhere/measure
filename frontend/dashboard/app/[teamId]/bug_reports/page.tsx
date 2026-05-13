@@ -172,6 +172,7 @@ export default function BugReportsOverview({
                   return (
                     <TableRow
                       key={`${idx}-${event_id}`}
+                      data-testid="bug-report-row"
                       className="font-body"
                       tabIndex={0}
                       onKeyDown={(e) => {
@@ -194,7 +195,7 @@ export default function BugReportsOverview({
                             ID: {event_id}
                           </p>
                           <div className="py-1" />
-                          <p className="truncate select-none">
+                          <p data-testid="bug-report-row-description" className="truncate select-none">
                             {description ? description : "No Description"}
                           </p>
                           <div className="py-1" />

@@ -545,6 +545,7 @@ export default function Apps({ params }: { params: { teamId: string } }) {
               <p className="text-sm">API key</p>
               <div className="px-3" />
               <Input
+                data-testid="api-key-input"
                 type="text"
                 readOnly={true}
                 value={filters.app!.api_key.key}

@@ -379,7 +379,7 @@ export const ErrorsDetails: React.FC<ErrorsDetailsProps> = ({
                 <div
                   className={`${effectiveFetching ? "invisible" : "visible"}`}
                 >
-                  <p className="font-display text-xl"> Id: {firstResult.id}</p>
+                  <p data-testid="exception-detail-id" className="font-display text-xl"> Id: {firstResult.id}</p>
                   <div className="flex flex-wrap gap-2 py-2 items-center">
                     <Pill
                       type={firstResult.anr ? PillType.Anr : PillType.Error}
@@ -394,15 +394,19 @@ export const ErrorsDetails: React.FC<ErrorsDetailsProps> = ({
                       <Pill type={PillType.Handled} />
                     )}
                     <Pill
+                      data-testid="exception-detail-timestamp"
                       tooltip
                     >{`Time: ${formatDateToHumanReadableDateTime(firstResult.timestamp)}`}</Pill>
                     <Pill
+                      data-testid="exception-detail-app-version"
                       tooltip
                     >{`App version: ${firstResult.attribute.app_version}`}</Pill>
                     <Pill
+                      data-testid="exception-detail-device"
                       tooltip
                     >{`Device: ${firstResult.attribute.device_manufacturer + firstResult.attribute.device_model}`}</Pill>
                     <Pill
+                      data-testid="exception-detail-network-type"
                       tooltip
                     >{`Network type: ${firstResult.attribute.network_type}`}</Pill>
                   </div>
@@ -474,7 +478,7 @@ export const ErrorsDetails: React.FC<ErrorsDetailsProps> = ({
                         <AccordionTrigger className="font-display">
                           {"Thread: " + firstResult.attribute.thread_name}
                         </AccordionTrigger>
-                        <AccordionContent>
+                        <AccordionContent data-testid="exception-detail-main-stacktrace">
                           <CodeBlock
                             language="java"
                             className={stackTraceCodeBlockClassName}

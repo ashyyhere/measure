@@ -1,0 +1,4 @@
+node_modules/
+playwright/.storage-state.json
+test-results/
+playwright-report/

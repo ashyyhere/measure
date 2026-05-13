@@ -195,6 +195,7 @@ export default function BugReport({
         <div>
           <div className="flex flex-wrap gap-2 py-2 pb-12 items-center">
             <Pill
+              data-testid="bug-report-detail-status"
               type={
                 displayBugReport.status === 0
                   ? PillType.OpenStatus
@@ -231,7 +232,7 @@ export default function BugReport({
               )}
           </div>
           {displayBugReport.description && (
-            <p className="font-body text-lg">{displayBugReport.description}</p>
+            <p data-testid="bug-report-detail-description" className="font-body text-lg">{displayBugReport.description}</p>
           )}
           <div className="py-8" />
           <div className="flex flex-row">

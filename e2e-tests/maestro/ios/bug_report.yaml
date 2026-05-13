@@ -1,0 +1,22 @@
+appId: ${APP_ID}
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Native iOS"
+    timeout: 30000
+- tapOn: "Native iOS"
+- scrollUntilVisible:
+    element:
+      text: "Launch Bug Report"
+- tapOn: "Launch Bug Report"
+- tapOn: "Briefly describe the issue you are facing."
+- inputText: "e2e-ios-bug-report"
+- tapOn: "Gallery"
+- tapOn:
+    text: "Photo, .*"
+    index: 0
+# Confirms the crop on the Move-and-Scale screen shown when allowsEditing is on.
+- tapOn:
+    text: "Choose"
+    optional: true
+- tapOn: "Send"

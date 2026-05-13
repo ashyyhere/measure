@@ -181,6 +181,8 @@ export default function SessionTimelineEventCell({
     <div className="border-b border-border group">
       <button
         type="button"
+        data-testid="session-timeline-event"
+        data-event-type={eventType}
         onClick={onToggle}
         className="w-full text-left px-3 py-4 font-display outline-none transition-colors group-hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:ring-ring/50 focus-visible:ring-[2px] focus-visible:ring-inset"
       >
