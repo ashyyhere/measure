@@ -152,6 +152,108 @@ class BuildUploadTaskTest {
     }
 
     @Test
+    fun `sends request with React Native bundle archive when available`() {
+        val bundleArchive = temporaryFolder.newFile("mapping-android.tgz").apply {
+            writeText("tarball")
+        }
+        task.reactNativeBundleArchiveProperty.set(bundleArchive)
+
+        mockWebServer.enqueue(
+            MockResponse().setResponseCode(200).setBody("""{"ok": "uploaded build info"}""")
+        )
+        task.upload()
+        val recordedRequest = mockWebServer.takeRequest()
+        val buildsRequest =
+            Json.decodeFromString(BuildsApiRequest.serializer(), recordedRequest.body.readUtf8())
+
+        assertEquals(2, buildsRequest.mappings.size)
+        assertTrue(buildsRequest.mappings.any { it.type == "proguard" && it.filename == "mapping.txt" })
+        assertTrue(buildsRequest.mappings.any { it.type == "jsbundle" && it.filename == "mapping-android.tgz" })
+    }
+
+    @Test
+    fun `sends request with proguard, flutter, and RN mappings together`() {
+        val flutterSymbolsDir = temporaryFolder.root.resolve("flutter_symbols")
+        File(flutterSymbolsDir, "app.android-arm64.symbols").writeText("flutter symbols data")
+        val bundleArchive = temporaryFolder.newFile("mapping-android.tgz").apply {
+            writeText("tarball")
+        }
+        task.reactNativeBundleArchiveProperty.set(bundleArchive)
+
+        mockWebServer.enqueue(
+            MockResponse().setResponseCode(200).setBody("""{"ok": "uploaded build info"}""")
+        )
+        task.upload()
+        val recordedRequest = mockWebServer.takeRequest()
+        val buildsRequest =
+            Json.decodeFromString(BuildsApiRequest.serializer(), recordedRequest.body.readUtf8())
+
+        assertEquals(3, buildsRequest.mappings.size)
+        assertTrue(buildsRequest.mappings.any { it.type == "proguard" })
+        assertTrue(buildsRequest.mappings.any { it.type == "elf_debug" })
+        assertTrue(buildsRequest.mappings.any { it.type == "jsbundle" })
+    }
+
+    @Test
+    fun `sends only RN bundle archive when proguard mapping is absent`() {
+        val bundleArchive = temporaryFolder.newFile("mapping-android.tgz").apply {
+            writeText("tarball")
+        }
+        task.reactNativeBundleArchiveProperty.set(bundleArchive)
+        task.mappingFileProperty.set(null as File?)
+
+        mockWebServer.enqueue(
+            MockResponse().setResponseCode(200).setBody("""{"ok": "uploaded build info"}""")
+        )
+        task.upload()
+        val recordedRequest = mockWebServer.takeRequest()
+        val buildsRequest =
+            Json.decodeFromString(BuildsApiRequest.serializer(), recordedRequest.body.readUtf8())
+
+        assertEquals(1, buildsRequest.mappings.size)
+        assertEquals("jsbundle", buildsRequest.mappings[0].type)
+        assertEquals("mapping-android.tgz", buildsRequest.mappings[0].filename)
+    }
+
+    @Test
+    fun `uploads RN bundle archive content to presigned URL`() {
+        val archiveContent = "react-native-bundle-tarball"
+        val bundleArchive = temporaryFolder.newFile("mapping-android.tgz").apply {
+            writeText(archiveContent)
+        }
+        task.reactNativeBundleArchiveProperty.set(bundleArchive)
+        task.mappingFileProperty.set(null as File?)
+
+        val uploadUrl = mockWebServer.url("/upload-rn-bundle").toString()
+        val buildsResponse = """
+            {
+                "mappings": [
+                    {
+                        "id": "rn-id",
+                        "type": "jsbundle",
+                        "filename": "mapping-android.tgz",
+                        "upload_url": "$uploadUrl",
+                        "expires_at": "2025-08-13T01:59:45.577889184Z",
+                        "headers": {
+                            "x-amz-meta-mapping_id": "rn-id"
+                        }
+                    }
+                ]
+            }
+        """.trimIndent()
+        mockWebServer.enqueue(MockResponse().setResponseCode(200).setBody(buildsResponse))
+        mockWebServer.enqueue(MockResponse().setResponseCode(200))
+
+        task.upload()
+
+        mockWebServer.takeRequest()
+        val uploadRequest = mockWebServer.takeRequest()
+        assertEquals("PUT", uploadRequest.method)
+        assertEquals("/upload-rn-bundle", uploadRequest.path)
+        assertEquals(archiveContent, uploadRequest.body.readUtf8())
+    }
+
+    @Test
     fun `sends request with API_KEY in the header`() {
         mockWebServer.enqueue(
             MockResponse().setResponseCode(200).setBody("""{"ok": "uploaded build info"}""")

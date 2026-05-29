@@ -31,6 +31,7 @@ import java.net.URL
 internal const val HEADER_AUTHORIZATION = "Authorization"
 private const val TYPE_PROGUARD = "proguard"
 private const val TYPE_FLUTTER_SYMBOLS = "elf_debug"
+private const val TYPE_JS_BUNDLE = "jsbundle"
 private const val BUILDS_PATH = "builds"
 
 private const val ERROR_MSG_401 =
@@ -96,6 +97,10 @@ abstract class BuildUploadTask : DefaultTask() {
     @get:InputFiles
     abstract val flutterSymbolsFiles: ConfigurableFileCollection
 
+    @get:Optional
+    @get:InputFile
+    abstract val reactNativeBundleArchiveProperty: RegularFileProperty
+
     @get:InputFile
     abstract val manifestFileProperty: RegularFileProperty
 
@@ -114,12 +119,13 @@ abstract class BuildUploadTask : DefaultTask() {
         val mappingFile = mappingFileProperty.getOrNull()?.asFile
         val buildMetadataFile = buildMetadataFileProperty.get().asFile
         val flutterSymbols = flutterSymbolsFiles.files
+        val rnBundleArchive = reactNativeBundleArchiveProperty.getOrNull()?.asFile
 
         val manifestData = readManifestData(manifestFile)
         val (buildSize, buildType) = readBuildMetadata(buildMetadataFile)
 
         val client = httpClientProvider.get().client
-        val mappings = collectMappingInfo(mappingFile, flutterSymbols)
+        val mappings = collectMappingInfo(mappingFile, flutterSymbols, rnBundleArchive)
         val buildsRequest = createBuildsRequest(manifestData, buildSize, buildType, mappings)
 
         sendBuildsRequest(
@@ -129,12 +135,14 @@ abstract class BuildUploadTask : DefaultTask() {
             mappings,
             mappingFile,
             flutterSymbols,
+            rnBundleArchive,
         )
     }
 
     private fun collectMappingInfo(
         mappingFile: File?,
         flutterSymbols: Set<File>,
+        rnBundleArchive: File?,
     ): List<MappingInfo> {
         val mappings = mutableListOf<MappingInfo>()
 
@@ -150,6 +158,11 @@ abstract class BuildUploadTask : DefaultTask() {
             flutterSymbols.forEach { symbolsFile ->
                 mappings.add(MappingInfo(type = TYPE_FLUTTER_SYMBOLS, filename = symbolsFile.name))
             }
+        }
+
+        if (rnBundleArchive != null && rnBundleArchive.exists()) {
+            logger.info("measure: react native bundle archive found at ${rnBundleArchive.absolutePath}")
+            mappings.add(MappingInfo(type = TYPE_JS_BUNDLE, filename = rnBundleArchive.name))
         }
 
         return mappings
@@ -177,10 +190,11 @@ abstract class BuildUploadTask : DefaultTask() {
         mappings: List<MappingInfo>,
         mappingFile: File?,
         flutterSymbols: Set<File>,
+        rnBundleArchive: File?,
     ) {
         val buildsResponse = callBuildsApi(client, manifestData, buildsRequest)
         if (buildsResponse != null && mappings.isNotEmpty()) {
-            uploadMappingFiles(client, buildsResponse, mappingFile, flutterSymbols)
+            uploadMappingFiles(client, buildsResponse, mappingFile, flutterSymbols, rnBundleArchive)
         }
     }
 
@@ -227,11 +241,13 @@ abstract class BuildUploadTask : DefaultTask() {
         buildsResponse: BuildsApiResponse,
         mappingFile: File?,
         flutterSymbols: Set<File>,
+        rnBundleArchive: File?,
     ) {
         buildsResponse.mappings.forEach { mapping ->
             val file = when (mapping.type) {
                 TYPE_PROGUARD -> mappingFile
                 TYPE_FLUTTER_SYMBOLS -> flutterSymbols.firstOrNull { it.name == mapping.filename }
+                TYPE_JS_BUNDLE -> rnBundleArchive?.takeIf { it.name == mapping.filename }
                 else -> null
             }
 
